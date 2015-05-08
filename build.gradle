@@ -1,0 +1,15 @@
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    logbackVersion = "1.1.3"
+    dbcpVersion = "2.1"
+}
+
+dependencies {
+    compile "ch.qos.logback:logback-classic:$logbackVersion",
+            "org.apache.commons:commons-dbcp2:$dbcpVersion"
+}

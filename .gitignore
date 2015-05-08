@@ -1,0 +1,11 @@
+target                                                                                       
+build
+classes
+tmp
+out
+.gradle
+.idea/workspace.xml
+*.log
+*.swp
+*.class
+*~
