@@ -1,6 +1,6 @@
 package net.nostromo.dbutils;
 
-import net.nostromo.common.NostromoProperties;
+import net.nostromo.utils.NostromoProperties;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import javax.sql.DataSource;
