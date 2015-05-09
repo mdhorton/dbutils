@@ -1,33 +1,34 @@
 package net.nostromo.dbutils;
 
-import java.lang.reflect.InvocationTargetException;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class DbTemplate {
 
-    private final Connection con;
+    private final DataSource ds;
 
-    public DbTemplate(final Connection con) {
-        this.con = con;
+    public DbTemplate(final DataSource ds) {
+        this.ds = ds;
     }
 
-    public <T> T query(final String sql, final DbBeanSetter<T> beanSetter, final Object[] params)
-            throws SQLException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        final PreparedStatement ps = con.prepareStatement(sql);
+    public <T> List<T> readAll(final String sql, final DbBeanSetter<T> beanSetter, final Object... params)
+            throws DbException {
+        try (final Connection con = ds.getConnection();
+             final PreparedStatement ps = con.prepareStatement(sql)) {
+            for (final Object param : params) {
+                ps.setObject(1, param);
+            }
 
-        for (final Object param : params) {
-            ps.setObject(1, param);
-        }
-
-        try (final ResultSet rs = ps.executeQuery()) {
-            final DbRowSetter<T> rowSetter = new DbRowSetter<>(rs, beanSetter);
-            final T obj = rowSetter.createRowObject();
-            if (obj == null) throw new RuntimeException("no rows found");
-            if (rs.next()) throw new RuntimeException("multiple rows found");
-            return obj;
+            try (final ResultSet rs = ps.executeQuery()) {
+                final DbRowSetter<T> rowSetter = new DbRowSetter<>(rs, beanSetter);
+                return rowSetter.createList();
+            }
+        } catch (final SQLException | ReflectiveOperationException ex) {
+            throw new DbException(ex.getMessage(), ex);
         }
     }
 }

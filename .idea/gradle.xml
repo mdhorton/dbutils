@@ -14,6 +14,16 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="LOCAL" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/../utils" />
+        <option name="gradleHome" value="/remote/gradle/current" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/../utils" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>

@@ -1,13 +1,24 @@
 package net.nostromo.dbutils;
 
+import net.nostromo.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class DbBeanSetter<T> {
 
-    private final Map<String, Method> methodMap = new HashMap<>();
+    private static final Logger LOG = LoggerFactory.getLogger(DbBeanSetter.class);
+
+    private final Map<String, MethodItem> methodMap = new HashMap<>();
     private final Class<T> clazz;
 
     public DbBeanSetter(final Class<T> clazz) {
@@ -17,9 +28,19 @@ public class DbBeanSetter<T> {
 
     public void setFieldValue(final String fieldName, final T obj, final Object value)
             throws InvocationTargetException, IllegalAccessException {
-        final Method method = methodMap.get(fieldName);
-        if (method == null) return;
-        method.invoke(obj, value);
+        final MethodItem methodItem = methodMap.get(fieldName);
+        if (methodItem == null) return;
+
+        final Method method = methodItem.getMethod();
+        final Class<?> type = methodItem.getType();
+        final Object converted = convert(type, value);
+
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("{} -> {} -> {} ({}) -> {} ({})", fieldName, type, value.getClass(), value,
+                    converted.getClass(), converted);
+        }
+
+        method.invoke(obj, converted);
     }
 
     public T newObject() throws IllegalAccessException, InstantiationException {
@@ -28,6 +49,49 @@ public class DbBeanSetter<T> {
 
     public boolean fieldExists(final String fieldName) {
         return methodMap.containsKey(fieldName);
+    }
+
+    private Object convert(final Class<?> target, final Object value) {
+        if (target == String.class) return string(value);
+        else if (value instanceof BigDecimal) return bigDecimal(target, value);
+        else if (value instanceof Timestamp) return timestamp(target, value);
+        return value;
+    }
+
+    private Object string(final Object value) {
+        if (value instanceof BigDecimal) return ((BigDecimal) value).toPlainString();
+        return value.toString();
+    }
+
+    private Object bigDecimal(final Class<?> type, final Object value) {
+        if (type != BigDecimal.class) {
+            final BigDecimal o = (BigDecimal) value;
+
+            if (type == BigInteger.class) return o.toBigInteger();
+            if (type == double.class || type == Double.class) return o.doubleValue();
+            if (type == float.class || type == Float.class) return o.floatValue();
+            if (type == long.class || type == Long.class) return o.longValue();
+            if (type == int.class || type == Integer.class) return o.intValue();
+            if (type == short.class || type == Short.class) return o.shortValue();
+            if (type == byte.class || type == Byte.class) return o.byteValue();
+        }
+
+        return value;
+    }
+
+    private Object timestamp(final Class<?> type, final Object value) {
+        if (type != Timestamp.class) {
+            final Timestamp o = (Timestamp) value;
+
+            if (type == LocalDateTime.class) {
+                final Instant instant = Instant.ofEpochMilli(o.getTime());
+                return LocalDateTime.ofInstant(instant, Utils.NY);
+            }
+
+            if (type == long.class || type == Long.class) return o.getTime();
+        }
+
+        return value;
     }
 
     private void initMethodMap() {
@@ -55,7 +119,7 @@ public class DbBeanSetter<T> {
             // field type must match setter
             if (!field.getType().equals(paramTypes[0])) continue;
 
-            methodMap.put(name, method);
+            methodMap.put(name, new MethodItem(method, paramTypes[0]));
         }
     }
 
@@ -90,5 +154,24 @@ public class DbBeanSetter<T> {
 
         final String first = name.substring(3, 4).toLowerCase();
         return len == 4 ? first : first + name.substring(4);
+    }
+
+    private class MethodItem {
+
+        private final Method method;
+        private final Class<?> type;
+
+        public MethodItem(final Method method, final Class<?> type) {
+            this.method = method;
+            this.type = type;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public Class<?> getType() {
+            return type;
+        }
     }
 }
