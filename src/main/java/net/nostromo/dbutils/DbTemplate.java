@@ -1,5 +1,8 @@
 package net.nostromo.dbutils;
 
+import net.nostromo.utils.aop.LogSize;
+import net.nostromo.utils.aop.LogTime;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,10 +14,12 @@ public class DbTemplate {
 
     private final DataSource ds;
 
-    public DbTemplate(final DataSource ds) {
-        this.ds = ds;
+    public DbTemplate() {
+        ds = DbSingleton.getInstance();
     }
 
+    @LogSize
+    @LogTime
     public <T> List<T> readAll(final String sql, final DbBeanSetter<T> beanSetter, final Object... params)
             throws DbException {
         try (final Connection con = ds.getConnection();
