@@ -7,7 +7,7 @@ import javax.sql.DataSource;
 
 public class DbSingleton {
 
-    private static class SingletonHolder {
+    private static class Singleton {
         private static final DataSource INSTANCE = dataSource();
 
         private static DataSource dataSource() {
@@ -33,6 +33,6 @@ public class DbSingleton {
     }
 
     public static DataSource getInstance() {
-        return SingletonHolder.INSTANCE;
+        return Singleton.INSTANCE;
     }
 }
