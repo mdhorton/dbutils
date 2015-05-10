@@ -17,6 +17,6 @@
     <orderEntry type="library" exported="" name="Gradle: org.apache.commons:commons-dbcp2:2.1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: org.apache.commons:commons-pool2:2.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: commons-logging:commons-logging:1.2" level="project" />
-    <orderEntry type="module" module-name="utils" />
+    <orderEntry type="module" module-name="utils" exported="" />
   </component>
 </module>
