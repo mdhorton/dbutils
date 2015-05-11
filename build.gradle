@@ -5,7 +5,7 @@ repositories {
 }
 
 ext {
-    dbcpVersion = "2.1"
+    dbcpVersion = "2.+"
 }
 
 dependencies {
