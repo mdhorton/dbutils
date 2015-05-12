@@ -12,11 +12,7 @@ import java.util.List;
 
 public class DbTemplate {
 
-    private final DataSource ds;
-
-    public DbTemplate() {
-        ds = DbSingleton.getInstance();
-    }
+    private final DataSource ds = DbSingleton.getInstance();
 
     @LogSize
     @LogTime
