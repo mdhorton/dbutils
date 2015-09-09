@@ -20,8 +20,10 @@ public class DbTemplate {
             throws DbException {
         try (final Connection con = ds.getConnection();
              final PreparedStatement ps = con.prepareStatement(sql)) {
+
+            int idx = 1;
             for (final Object param : params) {
-                ps.setObject(1, param);
+                ps.setObject(idx++, param);
             }
 
             try (final ResultSet rs = ps.executeQuery()) {
